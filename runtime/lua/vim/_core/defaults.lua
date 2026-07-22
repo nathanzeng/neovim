@@ -4,6 +4,25 @@ local nvim_on = require('vim._core.util').nvim_on
 
 --- Default user commands
 do
+  vim.api.nvim_create_user_command('Make', function()
+    local context = vim.api.nvim_get_context({})
+    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'foobar'), 'wb'))
+    file:write(vim.mpack.encode(context))
+    file:close()
+  end, {
+    desc = 'make a fake session file foobar with nvim_get_context',
+  })
+
+  vim.api.nvim_create_user_command('Load', function()
+    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'foobar'), 'rb'))
+    local context = vim.mpack.decode(file:read('*a'))
+    file:close()
+
+    vim.api.nvim_load_context(context)
+  end, {
+    desc = 'load a fake session file foobar with nvim_get_context',
+  })
+
   vim.api.nvim_create_user_command('Inspect', function(cmd)
     if cmd.bang then
       vim.print(vim.inspect_pos())
