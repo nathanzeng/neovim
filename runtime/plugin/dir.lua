@@ -70,3 +70,15 @@ nvim_on('VimEnter', group, {
     end
   end
 end)
+
+nvim_on('SessionLoadPost', group, {
+  pattern = '*',
+  desc = 'Open local directories',
+  nested = true,
+}, function()
+  for _, buf in ipairs(api.nvim_list_bufs()) do
+    if vim.bo[buf].filetype == 'directory' and vim.fn.bufwinid(buf) == -1 then
+      api.nvim_buf_delete(buf)
+    end
+  end
+end)
