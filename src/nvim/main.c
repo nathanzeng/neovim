@@ -264,11 +264,9 @@ int main(int argc, char **argv)
   mparm_T params;         // various parameters passed between
                           // main() and other functions.
 
-  // Record initial dir for restart to use
-  char initial_dir[MAXPATHL];
-  if (os_dirname(initial_dir, sizeof(initial_dir)) != OK
-      || os_setenv(ENV_INITIAL_DIR, initial_dir, true) != 0) {
-    os_unsetenv(ENV_INITIAL_DIR);
+  // Record initial dir for restart to use.
+  if (os_dirname(initial_dir, sizeof(initial_dir)) != OK) {
+    initial_dir[0] = NUL;
   }
 
   // Many variables are in `params` so that we can pass them around easily.
