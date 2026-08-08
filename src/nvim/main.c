@@ -264,6 +264,11 @@ int main(int argc, char **argv)
   mparm_T params;         // various parameters passed between
                           // main() and other functions.
 
+  // Record initial dir for restart to use.
+  if (os_dirname(initial_dir, sizeof(initial_dir)) != OK) {
+    initial_dir[0] = NUL;
+  }
+
   // Many variables are in `params` so that we can pass them around easily.
   // `argc` and `argv` are also copied, so that they can be changed.
   init_params(&params, argc, argv);

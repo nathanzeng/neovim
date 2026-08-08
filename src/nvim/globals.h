@@ -555,6 +555,7 @@ EXTERN bool swap_exists_did_quit INIT( = false);  ///< Selected "quit" at the di
 
 EXTERN char IObuff[IOSIZE];                 ///< Buffer for sprintf, I/O, etc.
 EXTERN char NameBuff[MAXPATHL];             ///< Buffer for expanding file names
+EXTERN char initial_dir[MAXPATHL];          ///< Current directory at startup
 EXTERN char msg_buf[MSG_BUF_LEN];           ///< Small buffer for messages
 EXTERN char os_buf[                         ///< Buffer for the os/ layer
 #if MAXPATHL > IOSIZE
