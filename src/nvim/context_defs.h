@@ -14,6 +14,8 @@ typedef struct {
   uint32_t mark;     ///< Extmark id tracking `pos` across buffer edits.
   colnr_T curswant;  ///< Preferred column ("curswant"); -1 if unset.
   handle_T buf;      ///< Current buffer handle.
+  // TODO(nathan): more descriptive description plz
+  String buf_name;   ///< Current buffer name.
   String regs;       ///< Registers (shada msgpack string).
   String jumps;      ///< Jumplist (shada msgpack string).
   String bufs;       ///< Buffer list (shada msgpack string).

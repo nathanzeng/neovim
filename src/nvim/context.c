@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "nvim/api/buffer.h"
 #include "nvim/api/keysets_defs.h"
 #include "nvim/api/private/converter.h"
 #include "nvim/api/private/defs.h"
@@ -35,6 +36,7 @@
 #include "nvim/eval/typval_defs.h"
 #include "nvim/eval/userfunc.h"
 #include "nvim/eval/vars.h"
+#include "nvim/ex_cmds.h"
 #include "nvim/ex_docmd.h"
 #include "nvim/fileio.h"
 #include "nvim/globals.h"
@@ -43,6 +45,7 @@
 #include "nvim/mark.h"
 #include "nvim/memory.h"
 #include "nvim/memory_defs.h"
+#include "nvim/message.h"
 #include "nvim/option.h"
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
@@ -161,15 +164,7 @@ void ctx_load(Context *ctx, const CtxStateFlags flags, const CtxLoadFlags loadfl
   }
 
   if (flags & kCtxBufs) {
-    // Error err = ERROR_INIT;
-    // nvim_set_current_buf(ctx->buf, &err);
-
-    // Error err = ERROR_INIT;
-    // nvim_set_current_buf(ctx->buf, &err);
-    // api_clear_error(&err);
-
-    // TODO(nathan): we edit a scratch buffer, think because the buffer doesn't exist on load
-    do_buffer(DOBUF_GOTO, DOBUF_FIRST, FORWARD, ctx->buf, true);
+    do_ecmd(0, ctx->buf_name.data, NULL, NULL, ECMD_ONE, 0, curwin);
 
     shada_read_string(ctx->bufs, kShaDaWantInfo | kShaDaForceit | kShaDaNoHistory | kShaDaNoOpt);
   }
@@ -220,11 +215,12 @@ Dict ctx_to_dict(Context *ctx, Arena *arena)
   assert(ctx != NULL);
 
   Dict rv = arena_dict(arena, 6);
+  Error err = ERROR_INIT;
 
   PUT_C(rv, "regs", ARRAY_OBJ(string_to_array(ctx->regs, false, arena)));
   PUT_C(rv, "jumps", ARRAY_OBJ(string_to_array(ctx->jumps, false, arena)));
   PUT_C(rv, "bufs", ARRAY_OBJ(string_to_array(ctx->bufs, false, arena)));
-  PUT_C(rv, "buf", ARRAY_OBJ(string_to_array(arena_printf(arena, "%d", ctx->buf), false, arena)));
+  PUT_C(rv, "buf_name", ARRAY_OBJ(string_to_array(nvim_buf_get_name(ctx->buf, &err), false, arena)));
   PUT_C(rv, "gvars", ARRAY_OBJ(string_to_array(ctx->gvars, false, arena)));
   PUT_C(rv, "funcs", ARRAY_OBJ(copy_array(ctx->funcs, arena)));
 
@@ -258,25 +254,8 @@ CtxStateFlags ctx_from_dict(Dict dict, Context *ctx, Error *err)
     } else if (strequal(item.key.data, "bufs")) {
       types |= kCtxBufs;
       ctx->bufs = array_to_string(item.value.data.array, err);
-    // TODO(nathan): wtf is this slop
-    } else if (strequal(item.key.data, "buf")) {
-      const Array buf = item.value.data.array;
-      if (buf.size == 1 && buf.items[0].type == kObjectTypeString) {
-        const String handle = buf.items[0].data.string;
-        ctx->buf = 0;
-        for (size_t j = 0; j < handle.size; j++) {
-          if (handle.data[j] < '0' || handle.data[j] > '9') {
-            ctx->buf = 0;
-            break;
-          }
-          const int digit = handle.data[j] - '0';
-          if (ctx->buf > (INT32_MAX - digit) / 10) {
-            ctx->buf = 0;
-            break;
-          }
-          ctx->buf = ctx->buf * 10 + digit;
-        }
-      }
+    } else if (strequal(item.key.data, "buf_name")) {
+      ctx->buf_name = array_to_string(item.value.data.array, err);
     } else if (strequal(item.key.data, "gvars")) {
       types |= kCtxGVars;
       ctx->gvars = array_to_string(item.value.data.array, err);
