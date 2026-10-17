@@ -112,6 +112,7 @@ void ctx_free(Context *ctx)
   api_free_string(ctx->regs);
   api_free_string(ctx->jumps);
   api_free_string(ctx->bufs);
+  api_free_string(ctx->buf_name);
   api_free_string(ctx->gvars);
   api_free_array(ctx->funcs);
   *ctx = (Context)CONTEXT_INIT;
@@ -271,7 +272,9 @@ void ctx_load(Context *ctx, const CtxStateFlags flags, const CtxLoadFlags loadfl
   }
 
   if (flags & kCtxBufs) {
-    do_ecmd(0, ctx->buf_name.data, NULL, NULL, ECMD_ONE, 0, curwin);
+    if (ctx->buf_name.data != NULL) {
+      do_ecmd(0, ctx->buf_name.data, NULL, NULL, ECMD_ONE, 0, curwin);
+    }
 
     shada_read_string(ctx->bufs, kShaDaWantInfo | kShaDaForceit | kShaDaNoHistory | kShaDaNoOpt);
   }
@@ -363,6 +366,11 @@ CtxStateFlags ctx_from_dict(Dict dict, Context *ctx, Error *err)
       ctx->bufs = array_to_string(item.value.data.array, err);
     } else if (strequal(item.key.data, "buf_name")) {
       ctx->buf_name = array_to_string(item.value.data.array, err);
+      if (!ERROR_SET(err)) {
+        // Unlike the ShaDa payloads, do_ecmd() needs a NUL-terminated filename.
+        ctx->buf_name.data = xrealloc(ctx->buf_name.data, ctx->buf_name.size + 1);
+        ctx->buf_name.data[ctx->buf_name.size] = NUL;
+      }
     } else if (strequal(item.key.data, "gvars")) {
       types |= kCtxGVars;
       ctx->gvars = array_to_string(item.value.data.array, err);
