@@ -7,8 +7,8 @@ do
   -- TODO: these only work if the argument list is empty (e.g. start with `neovim` not `neovim .`)
   -- See `:h shada-%`
   vim.api.nvim_create_user_command('Make', function()
-    local context = vim.api.nvim_get_context({})
-    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'foobar'), 'wb'))
+    local context = vim.api.nvim_get_context({ types = { 'bufs', 'jumps', 'regs' } })
+    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'session_prototype'), 'wb'))
     file:write(vim.mpack.encode(context))
     file:close()
   end, {
@@ -16,7 +16,7 @@ do
   })
 
   vim.api.nvim_create_user_command('Load', function()
-    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'foobar'), 'rb'))
+    local file = assert(io.open(vim.fs.joinpath(vim.fn.getcwd(), 'session_prototype'), 'rb'))
     local context = vim.mpack.decode(file:read('*a'))
     file:close()
 
