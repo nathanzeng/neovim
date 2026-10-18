@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "nvim/api/extmark.h"
+#include "nvim/api/buffer.h"
 #include "nvim/api/keysets_defs.h"
 #include "nvim/api/private/converter.h"
 #include "nvim/api/private/defs.h"
@@ -38,6 +39,7 @@
 #include "nvim/eval/typval_defs.h"
 #include "nvim/eval/userfunc.h"
 #include "nvim/eval/vars.h"
+#include "nvim/ex_cmds.h"
 #include "nvim/ex_docmd.h"
 #include "nvim/extmark.h"
 #include "nvim/fileio.h"
@@ -48,6 +50,7 @@
 #include "nvim/marktree.h"
 #include "nvim/memory.h"
 #include "nvim/memory_defs.h"
+#include "nvim/message.h"
 #include "nvim/option.h"
 #include "nvim/option_defs.h"
 #include "nvim/option_vars.h"
@@ -55,6 +58,7 @@
 #include "nvim/register.h"
 #include "nvim/shada.h"
 #include "nvim/state_defs.h"
+#include "nvim/strings.h"
 #include "nvim/vim_defs.h"
 #include "nvim/window.h"
 #include "nvim/winfloat.h"
@@ -108,6 +112,7 @@ void ctx_free(Context *ctx)
   api_free_string(ctx->regs);
   api_free_string(ctx->jumps);
   api_free_string(ctx->bufs);
+  api_free_dict(ctx->windows);
   api_free_string(ctx->gvars);
   api_free_array(ctx->funcs);
   *ctx = (Context)CONTEXT_INIT;
@@ -217,6 +222,8 @@ void ctx_load(Context *ctx, const CtxStateFlags flags, const CtxLoadFlags loadfl
 {
   // TODO(jkeyes): restore window (add a `win` param?), mode?
 
+  // TODO(nathan): how do we restore this
+
   if (flags & kCtxCursor) {
     assert(handle_get_buffer(ctx->buf) == curbuf);
     curwin->w_cursor = ctx->pos;  // The caller clamps it (check_cursor()).
@@ -315,11 +322,13 @@ Dict ctx_to_dict(Context *ctx, Arena *arena)
 {
   assert(ctx != NULL);
 
-  Dict rv = arena_dict(arena, 5);
+  Dict rv = arena_dict(arena, 6);
+  Error err = ERROR_INIT;
 
   PUT_C(rv, "regs", ARRAY_OBJ(string_to_array(ctx->regs, false, arena)));
   PUT_C(rv, "jumps", ARRAY_OBJ(string_to_array(ctx->jumps, false, arena)));
   PUT_C(rv, "bufs", ARRAY_OBJ(string_to_array(ctx->bufs, false, arena)));
+  PUT_C(rv, "buf_name", ARRAY_OBJ(string_to_array(nvim_buf_get_name(ctx->buf, &err), false, arena)));
   PUT_C(rv, "gvars", ARRAY_OBJ(string_to_array(ctx->gvars, false, arena)));
   PUT_C(rv, "funcs", ARRAY_OBJ(copy_array(ctx->funcs, arena)));
 
@@ -353,6 +362,13 @@ CtxStateFlags ctx_from_dict(Dict dict, Context *ctx, Error *err)
     } else if (strequal(item.key.data, "bufs")) {
       types |= kCtxBufs;
       ctx->bufs = array_to_string(item.value.data.array, err);
+    } else if (strequal(item.key.data, "buf_name")) {
+      ctx->buf_name = array_to_string(item.value.data.array, err);
+      if (!ERROR_SET(err)) {
+        // Unlike the ShaDa payloads, do_ecmd() needs a NUL-terminated filename.
+        ctx->buf_name.data = xrealloc(ctx->buf_name.data, ctx->buf_name.size + 1);
+        ctx->buf_name.data[ctx->buf_name.size] = NUL;
+      }
     } else if (strequal(item.key.data, "gvars")) {
       types |= kCtxGVars;
       ctx->gvars = array_to_string(item.value.data.array, err);
