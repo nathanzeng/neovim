@@ -112,7 +112,7 @@ void ctx_free(Context *ctx)
   api_free_string(ctx->regs);
   api_free_string(ctx->jumps);
   api_free_string(ctx->bufs);
-  api_free_string(ctx->buf_name);
+  api_free_dict(ctx->windows);
   api_free_string(ctx->gvars);
   api_free_array(ctx->funcs);
   *ctx = (Context)CONTEXT_INIT;
@@ -222,6 +222,8 @@ void ctx_load(Context *ctx, const CtxStateFlags flags, const CtxLoadFlags loadfl
 {
   // TODO(jkeyes): restore window (add a `win` param?), mode?
 
+  // TODO(nathan): how do we restore this
+
   if (flags & kCtxCursor) {
     assert(handle_get_buffer(ctx->buf) == curbuf);
     curwin->w_cursor = ctx->pos;  // The caller clamps it (check_cursor()).
@@ -272,10 +274,6 @@ void ctx_load(Context *ctx, const CtxStateFlags flags, const CtxLoadFlags loadfl
   }
 
   if (flags & kCtxBufs) {
-    if (ctx->buf_name.data != NULL) {
-      do_ecmd(0, ctx->buf_name.data, NULL, NULL, ECMD_ONE, 0, curwin);
-    }
-
     shada_read_string(ctx->bufs, kShaDaWantInfo | kShaDaForceit | kShaDaNoHistory | kShaDaNoOpt);
   }
 

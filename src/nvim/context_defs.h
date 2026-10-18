@@ -25,8 +25,8 @@ typedef struct {
   uint32_t pos_marks[6];  ///< Extmarks tracking the (Cache) positions above (in that order),
                           ///< across buffer edits. 0: none.
   handle_T buf;      ///< Current buffer handle.
-  // TODO(nathan): more descriptive description plz
-  String buf_name;   ///< Current buffer name.
+  // TODO(nathan): description
+  Dict windows;
   String regs;       ///< Registers (shada msgpack string).
   String jumps;      ///< Jumplist (shada msgpack string).
   String bufs;       ///< Buffer list (shada msgpack string).
