@@ -1311,6 +1311,7 @@ static void normal_check_cursor_moved(NormalState *s)
 static int last_visualchanged_mode;
 static pos_T last_visualchanged_cursor;
 static pos_T last_visualchanged_anchor;
+static bool last_visualchanged_block_eol;
 
 /// Trigger VisualChanged if visual selection has changed
 static void normal_check_visual_changed(NormalState *s)
@@ -1321,14 +1322,19 @@ static void normal_check_visual_changed(NormalState *s)
     return;
   }
 
+  // For blockwise changes
+  const bool block_eol = Visual.mode == Ctrl_V && curwin->w_curswant == MAXCOL;
+
   if (!finish_op && has_event(EVENT_VISUALCHANGED)
       && (Visual.mode != last_visualchanged_mode
           || !equalpos(curwin->w_cursor, last_visualchanged_cursor)
-          || !equalpos(Visual.start, last_visualchanged_anchor))) {
+          || !equalpos(Visual.start, last_visualchanged_anchor)
+          || block_eol != last_visualchanged_block_eol)) {
     aucmd_defer(EVENT_VISUALCHANGED, NULL, NULL, AUGROUP_ALL, curbuf, NULL, NULL);
     last_visualchanged_cursor = curwin->w_cursor;
     last_visualchanged_anchor = Visual.start;
     last_visualchanged_mode = Visual.mode;
+    last_visualchanged_block_eol = block_eol;
   }
 }
 

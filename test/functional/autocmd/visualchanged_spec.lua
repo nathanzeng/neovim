@@ -72,6 +72,27 @@ describe('VisualChanged', function()
     eq(12, count())
   end)
 
+  it('fires when a block changes its end-of-line extent without moving', function()
+    api.nvim_buf_set_lines(0, 0, -1, true, { 'abcdef', 'abc' })
+    feed 'gg0<c-v>jll'
+    local initial_count = count()
+    local cursor = api.nvim_win_get_cursor(0)
+    local anchor = eval('getpos("v")')
+
+    feed '$'
+    eq(initial_count + 1, count())
+    eq(cursor, api.nvim_win_get_cursor(0))
+    eq(anchor, eval('getpos("v")'))
+
+    feed '$'
+    eq(initial_count + 1, count())
+
+    feed '3|'
+    eq(initial_count + 2, count())
+    eq(cursor, api.nvim_win_get_cursor(0))
+    eq(anchor, eval('getpos("v")'))
+  end)
+
   it('works with gv', function()
     feed 'vjl'
     eq(3, count())
