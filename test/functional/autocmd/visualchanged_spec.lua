@@ -1,6 +1,7 @@
 local t = require('test.testutil')
 local n = require('test.functional.testnvim')()
 
+local describe, it, before_each = t.describe, t.it, t.before_each
 local eq = t.eq
 local clear = n.clear
 local source = n.source
@@ -73,7 +74,7 @@ describe('VisualChanged', function()
   end)
 
   it('fires when a block changes its end-of-line extent without moving', function()
-    api.nvim_buf_set_lines(0, 0, -1, true, { 'abcdef', 'abc' })
+    api.nvim_buf_set_lines(0, 0, -1, true, { 'abcde', 'ab' })
     feed 'gg0<c-v>jll'
     local initial_count = count()
     local cursor = api.nvim_win_get_cursor(0)
