@@ -1520,6 +1520,9 @@ VimResume						*VimResume*
 VimSuspend						*VimSuspend*
 				Before Nvim enters |suspend| state.
 
+VisualChanged						*VisualChanged*
+				todo write this.
+
 WinClosed						*WinClosed*
 				When closing a window, just before it is
 				removed from the window layout.  The pattern

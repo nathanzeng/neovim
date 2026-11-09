@@ -142,6 +142,7 @@ return {
     VimResized = false, -- after Vim window was resized
     VimResume = false, -- after Nvim is resumed
     VimSuspend = false, -- before Nvim is suspended
+    VisualChanged = true, -- Visual selection starts or changes
     WinClosed = true, -- after closing a window
     WinEnter = true, -- after entering a window
     WinLeave = true, -- before leaving a window
