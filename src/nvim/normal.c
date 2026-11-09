@@ -1462,7 +1462,6 @@ static int normal_check(VimState *state)
     normal_check_text_changed(s);
     normal_check_window_scrolled(s);
     normal_check_safe_state(s);
-    normal_check_visual_changed(s);
 
     // Updating diffs from changed() does not always work properly,
     // esp. updating folds.  Do an update just before redrawing if
@@ -1480,6 +1479,7 @@ static int normal_check(VimState *state)
     }
 
     normal_check_folds(s);
+    normal_check_visual_changed(s);
     normal_redraw(s);
     do_redraw = false;
 
