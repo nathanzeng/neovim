@@ -184,5 +184,6 @@ return {
     TermRequest = true,
     UIEnter = true,
     UILeave = true,
+    VisualChanged = true,
   },
 }
