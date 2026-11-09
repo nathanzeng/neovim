@@ -1330,7 +1330,7 @@ static void normal_check_visual_changed(NormalState *s)
           || !equalpos(curwin->w_cursor, last_visualchanged_cursor)
           || !equalpos(Visual.start, last_visualchanged_anchor)
           || block_eol != last_visualchanged_block_eol)) {
-    aucmd_defer(EVENT_VISUALCHANGED, NULL, NULL, AUGROUP_ALL, curbuf, NULL, NULL);
+    apply_autocmds(EVENT_VISUALCHANGED, NULL, NULL, false, curbuf);
     last_visualchanged_cursor = curwin->w_cursor;
     last_visualchanged_anchor = Visual.start;
     last_visualchanged_mode = Visual.mode;
