@@ -1315,6 +1315,12 @@ static pos_T last_visualchanged_anchor;
 /// Trigger VisualChanged if visual selection has changed
 static void normal_check_visual_changed(NormalState *s)
 {
+  // Isn't visual mode; reset
+  if (!Visual.active) {
+    last_visualchanged_mode = -1;
+    return;
+  }
+
   if (!finish_op && Visual.active && (has_event(EVENT_VISUALCHANGED))
       && (Visual.mode != last_visualchanged_mode
           || !equalpos(curwin->w_cursor, last_visualchanged_cursor)
@@ -1323,9 +1329,6 @@ static void normal_check_visual_changed(NormalState *s)
     last_visualchanged_cursor = curwin->w_cursor;
     last_visualchanged_anchor = Visual.start;
     last_visualchanged_mode = Visual.mode;
-  } else {
-    // Isn't visual mode; reset
-    last_visualchanged_mode = -1;
   }
 }
 
